@@ -1,8 +1,11 @@
 #include "Game.h"
+#include "constants.h"
 
 // The entry point for a PlayBuffer program
 void MainGameEntry( PLAY_IGNORE_COMMAND_LINE )
 {
+	Play::CreateManager(DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_SCALE);
+	readFile();
 	spawnBall();
 	spawnBricks();
 	initializePaddle();
@@ -21,6 +24,7 @@ bool MainGameUpdate( float elapsedTime )
 // Gets called once when the player quits the game
 int MainGameExit( void )
 {
+	createFile();
 	Play::DestroyManager();
 	return PLAY_OK;
 }

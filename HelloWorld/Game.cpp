@@ -14,14 +14,16 @@ using namespace std;
 MyList highscores(5);
 unsigned int currentBrickScore = 0;
 
-// function declaration since ordering is messed up
+// function declarations
 void spawnBall();
+void drawText();
 
 void createFile() {
 	ofstream MyFile("filename.txt");
 
 	for (int i = 0; i < highscores.getSize(); i++) {
-		MyFile << highscores[i] << "\n";
+		if (highscores[i] != 0)
+			MyFile << highscores[i] << "\n";
 	}
 
 	MyFile.close();
@@ -34,9 +36,14 @@ void readFile() {
 		string line;
 
 		int i = 0;
-		while (getline(MyReadFile, line) && highscores.getSize() < 5) {
-			//highscores.push_back(stoi(line));
+		while (getline(MyReadFile, line) && i < highscores.getSize()) {
+			// Fail safe in case there is a newline created by a human, it will also concatenate if there are new lines in between scores
+			// Which is just a nice to have
+			if (line.empty()) {
+				continue;
+			}
 			highscores[i] = stoi(line);
+			i++;
 		}
 		MyReadFile.close();
 	}
@@ -45,26 +52,6 @@ void readFile() {
 			highscores[i] = 0;
 		}
 		createFile();
-	}
-}
-
-int getFileRows() {
-	int i = 0;
-
-	if (std::filesystem::exists("filename.txt")) {
-
-		ifstream MyReadFile("filename.txt");
-		string myText;
-
-		while (getline(MyReadFile, myText)) {
-			i++;
-		}
-	}
-	if (i == 0) {
-		return 0;	
-	}
-	else {
-		return i - 1;
 	}
 }
 
@@ -161,9 +148,11 @@ void StepFrame(float elapsedTime) {
 			ball.velocity.y *= -1;
 
 		if (pos.y < 0) {
+			highscores.increaseSize(1);
+
 			for (int i = 0; i < highscores.getSize(); i++) {
 				if (currentBrickScore > highscores[i]) {
-					MyList tempList(highscores.getSize());
+					MyList tempList(highscores.getSize() + 1);
 					int index = 0;
 
 					// These three for loops roughly emulate insert() from vector libary
@@ -173,13 +162,15 @@ void StepFrame(float elapsedTime) {
 
 					tempList[index++] = currentBrickScore;
 
-					for (int j = i; j < highscores.getSize() - 1; j++) {
+
+					for (int j = i; j < highscores.getSize(); j++) {
 						tempList[index++] = highscores[j];
 					}
 
 					for (int j = 0; j < highscores.getSize(); j++) {
 						highscores[j] = tempList[j];
 					}
+
 
 					currentBrickScore = 0;
 					break;
@@ -215,6 +206,10 @@ void StepFrame(float elapsedTime) {
 		Play::DestroyGameObject(brickId);
 	}
 
+	drawText();
+}
+
+void drawText() {
 	// Display the current player score
 	std::string tempString = std::to_string(currentBrickScore);
 	const char* myArray = tempString.c_str();
@@ -224,7 +219,7 @@ void StepFrame(float elapsedTime) {
 		// first cast the int to a string, then turn it into a const char list which is what playbuffer expects
 		std::string tempString = "P" + std::to_string(5 - i) + ": " + std::to_string(highscores[5 - i]);
 		const char* myArray = tempString.c_str();
-		Play::DrawDebugText({ DISPLAY_WIDTH - 30, (8 * (i - 1)) * 3 + 20}, myArray, Play::cBlue, true);
+		Play::DrawDebugText({ DISPLAY_WIDTH - 30, (8 * (i - 1)) * 3 + 20 }, myArray, Play::cBlue, true);
 	}
 }
 

@@ -6,7 +6,8 @@ class MyList
 	public:
 		MyList(int initialSize);
 		~MyList(); 
-		int getSize();
+		void increaseSize(int sizeToIncreaseBy);
+		int getSize() const;
 		int& operator[](size_t index);
 };
 
